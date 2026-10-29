@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DSL de reglas de descuento</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header><h1>{{ enunciado.titulo }}</h1></header>
+
+  <main>
+    <section>
+      <h2>Enunciado del proyecto</h2>
+      <dl>
+        <dt>Problema</dt><dd>{{ enunciado.problema }}</dd>
+        <dt>Vacío de conocimiento</dt><dd>{{ enunciado.vacio }}</dd>
+        <dt>Proceso empresarial</dt><dd>{{ enunciado.proceso }}</dd>
+        <dt>Objetivo general</dt><dd>{{ enunciado.objetivo }}</dd>
+      </dl>
+    </section>
+
+    <section>
+      <h2>Lenguaje de entrada</h2>
+      <form method="post" enctype="multipart/form-data">
+        <label for="codigo">Escribe las reglas de descuento</label>
+        <textarea id="codigo" name="codigo" spellcheck="false" data-ejemplo="{{ ejemplo }}">{{ texto }}</textarea>
+        <div class="fila">
+          <label for="archivo">o sube un archivo (.txt, UTF-8)</label>
+          <input type="file" id="archivo" name="archivo" accept=".txt,.dsl,text/plain">
+          <span id="nombre-archivo" class="ayuda" aria-live="polite"></span>
+        </div>
+        <p class="ayuda">Si subes un archivo, se analiza el archivo en lugar del texto de arriba.</p>
+        <div class="fila">
+          <button type="submit">Generar tokens y lexemas</button>
+          <button type="button" id="btn-ejemplo" class="secundario">Restaurar ejemplo</button>
+          <button type="button" id="btn-limpiar" class="secundario">Limpiar</button>
+        </div>
+      </form>
+    </section>
+
+    {% if error %}
+      <div class="error" role="alert">{{ error }}</div>
+    {% endif %}
+
+    {% if resultado %}
+      {% if resultado.errores %}
+        <section>
+          <h2>Errores léxicos ({{ resultado.errores|length }})</h2>
+          <div class="tabla-scroll">
+            <table>
+              <thead><tr><th>Carácter</th><th>Línea</th><th>Columna</th></tr></thead>
+              <tbody>
+                {% for e in resultado.errores %}
+                  <tr><td><code>{{ e.caracter }}</code></td><td>{{ e.linea }}</td><td>{{ e.columna }}</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <p class="ayuda">Estos caracteres no pertenecen al alfabeto del lenguaje y se omitieron.</p>
+        </section>
+      {% endif %}
+
+      <section>
+        <h2>Tokens y lexemas agrupados</h2>
+        <p class="resumen">{{ resultado.grupos|length }} tipos de token distintos en {{ resultado.tokens|length }} lexemas.</p>
+        <div class="tabla-scroll">
+          <table>
+            <thead><tr><th>Token (agrupador)</th><th>Lexemas</th></tr></thead>
+            <tbody>
+              {% for token, lexemas in resultado.grupos %}
+                <tr>
+                  <td><code>{{ token }}</code></td>
+                  <td>{% for l in lexemas %}<span class="chip">{{ l }}</span>{% endfor %}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section>
+        <h2>Secuencia de lexemas reconocidos</h2>
+        <div class="tabla-scroll">
+          <table>
+            <thead><tr><th>N.º</th><th>Lexema</th><th>Token</th><th>Línea:Col</th></tr></thead>
+            <tbody>
+              {% for t in resultado.tokens %}
+                <tr>
+                  <td>{{ loop.index }}</td>
+                  <td class="lexema">{{ t.lexema }}</td>
+                  <td><code>{{ t.token }}</code></td>
+                  <td>{{ t.linea }}:{{ t.columna }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    {% endif %}
+  </main>
+
+  <footer>Etapa 1 · Generación de tokens y lexemas</footer>
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
