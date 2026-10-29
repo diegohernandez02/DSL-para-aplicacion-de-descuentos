@@ -7,8 +7,7 @@ el lenguaje (con un ejemplo precargado) y la generación de **tokens y lexemas**
 
 | Archivo | Para qué sirve |
 |---|---|
-| `docs/index.html` | Paso 1.1: el "Hola Mundo" estático para GitHub Pages |
-| `app.py` | Paso 1.2: aplicación Flask (enunciado, entrada de texto/archivo, resultado) |
+| `app.py` | Aplicación Flask (enunciado, entrada de texto/archivo, resultado) |
 | `lexer.py` | Analizador léxico: especificación de tokens y algoritmo de reconocimiento |
 | `templates/index.html` | Página de la aplicación Flask (HTML) |
 | `static/style.css` | Estilos de la página |
@@ -54,9 +53,8 @@ está en el archivo `app.py`. No todos los hostings lo leen:
 
 | Hosting | Cómo arranca la app |
 |---|---|
-| Railway | Lee el `Procfile` |
 | Render | Comando de inicio escrito en su panel (`gunicorn app:app`) |
-| PythonAnywhere | Archivo WSGI de su panel; ignora el `Procfile` y no usa gunicorn |
+
 
 **Opción A: Render** (recomendada: se conecta al repositorio de GitHub y se actualiza con cada `git push`)
 
