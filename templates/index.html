@@ -39,6 +39,54 @@
       </form>
     </section>
 
+    <section>
+        <h2>Tokens y lexemas agrupados</h2>
+        <p class="resumen">{{ resultado.grupos|length }} tipos de token distintos en {{ resultado.tokens|length }} lexemas.</p>
+        <div class="tabla-scroll">
+          <table>
+            <thead><tr><th>Token (agrupador)</th><th>Lexemas</th></tr></thead>
+            <tbody>
+              {% for token, lexemas in resultado.grupos %}
+                <tr>
+                  <td><code>{{ token }}</code></td>
+                  <td>{% for l in lexemas %}<span class="chip">{{ l }}</span>{% endfor %}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+       <section>
+        <h2>Secuencia de lexemas reconocidos</h2>
+        <div class="tabla-scroll">
+          <table>
+            <thead><tr><th>N.º</th><th>Lexema</th><th>Token</th><th>Línea:Col</th></tr></thead>
+            <tbody>
+              {% for t in resultado.tokens %}
+                <tr>
+                  <td>{{ loop.index }}</td>
+                  <td class="lexema">{{ t.lexema }}</td>
+                  <td><code>{{ t.token }}</code></td>
+                  <td>{{ t.linea }}:{{ t.columna }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    {% endif %}
+  </main>
+
+    <section>
+        <h2>Árbol sintáctico</h2>
+        {% if resultado.valido_sintactico and resultado.arbol_texto %}
+          <pre style="background: var(--codigo-fondo); padding: .8rem; border-radius: 8px; overflow-x: auto; border: 1px solid var(--borde);"><code>{{ resultado.arbol_texto }}</code></pre>
+        {% else %}
+          <p class="ayuda">No se generó el árbol sintáctico porque la entrada no cumple con la gramática.</p>
+        {% endif %}
+      </section>
+
     {% if error %}
       <div class="error" role="alert">{{ error }}</div>
     {% endif %}
@@ -142,53 +190,7 @@
         {% endif %}
       </section>	
 
-      <section>
-        <h2>Árbol sintáctico</h2>
-        {% if resultado.valido_sintactico and resultado.arbol_texto %}
-          <pre style="background: var(--codigo-fondo); padding: .8rem; border-radius: 8px; overflow-x: auto; border: 1px solid var(--borde);"><code>{{ resultado.arbol_texto }}</code></pre>
-        {% else %}
-          <p class="ayuda">No se generó el árbol sintáctico porque la entrada no cumple con la gramática.</p>
-        {% endif %}
-      </section>
-
-      <section>
-        <h2>Tokens y lexemas agrupados</h2>
-        <p class="resumen">{{ resultado.grupos|length }} tipos de token distintos en {{ resultado.tokens|length }} lexemas.</p>
-        <div class="tabla-scroll">
-          <table>
-            <thead><tr><th>Token (agrupador)</th><th>Lexemas</th></tr></thead>
-            <tbody>
-              {% for token, lexemas in resultado.grupos %}
-                <tr>
-                  <td><code>{{ token }}</code></td>
-                  <td>{% for l in lexemas %}<span class="chip">{{ l }}</span>{% endfor %}</td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <section>
-        <h2>Secuencia de lexemas reconocidos</h2>
-        <div class="tabla-scroll">
-          <table>
-            <thead><tr><th>N.º</th><th>Lexema</th><th>Token</th><th>Línea:Col</th></tr></thead>
-            <tbody>
-              {% for t in resultado.tokens %}
-                <tr>
-                  <td>{{ loop.index }}</td>
-                  <td class="lexema">{{ t.lexema }}</td>
-                  <td><code>{{ t.token }}</code></td>
-                  <td>{{ t.linea }}:{{ t.columna }}</td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      </section>
-    {% endif %}
-  </main>
+      
 
   <footer>DSL de reglas de descuento · Análisis léxico, sintáctico y semántico</footer>
   <script src="{{ url_for('static', filename='script.js') }}"></script>
