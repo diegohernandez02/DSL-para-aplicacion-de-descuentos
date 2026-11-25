@@ -106,6 +106,13 @@ class GeneradorSintactico:
             "ACCION": [["T_APLICAR", "T_DESCUENTO", "T_PARI", "T_PORCENTAJE", "T_PARD"]],
         }
 
+    def reglas_glc_texto(self) -> List[str]:
+        lineas: List[str] = []
+        for nt, alternativas in self.producciones.items():
+            alts = [" ".join(alt) if alt else "ε" for alt in alternativas]
+            lineas.append(f"{nt} -> {' | '.join(alts)}")
+        return lineas
+
     def construir_parser(self) -> Callable[[List[Dict[str, Any]]], Tuple[Optional[NodoSintactico], List[ErrorSintactico]]]:
         producciones = self.producciones
 
@@ -238,6 +245,9 @@ class MetacompiladorSintactico:
         self.generador = GeneradorSintactico(producciones=producciones)
         self._parser = self.generador.construir_parser()
 
+    def obtener_reglas_glc(self) -> List[str]:
+        return self.generador.reglas_glc_texto()
+
     def analizar_tokens(self, tokens: List[Dict[str, Any]]) -> Dict[str, Any]:
         arbol, errores = self._parser(tokens)
         return {
@@ -249,7 +259,6 @@ class MetacompiladorSintactico:
 
 
 if __name__ == "__main__":
-    # Ejemplo rápido usando tokens en el formato que entrega `lexer.py`
     from lexer import tokenizar
 
     ejemplo = "SI CLIENTE.nivel = VIP Y COMPRA.total > 500 Y TIEMPO(enrango) ENTONCES APLICAR DESCUENTO(15%)"
