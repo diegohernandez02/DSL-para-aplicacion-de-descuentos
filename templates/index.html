@@ -101,6 +101,15 @@
         </section>
 
         <!-- Fase 2: Sintáctica -->
+        <section>
+          <h2>Reglas de la GLC</h2>
+          <p class="ayuda" style="margin-bottom: .6rem;">
+            Producciones de la gramática (el símbolo inicial corresponde a la primera regla; terminales y no terminales según la gramática).
+          </p>
+          <pre class="arbol-pre"><code>{% for prod in resultado.reglas_glc %}{{ prod }}
+{% endfor %}</code></pre>
+        </section>
+
         {% if resultado.valido_sintactico and resultado.arbol_texto %}
           <section>
             <h2>Árbol sintáctico</h2>
@@ -108,7 +117,6 @@
           </section>
 
           <!-- Fase 3: Semántica / Objeto JSON -->
-          <!-- Tabla de símbolos / tipos del análisis semántico -->
           {% if resultado.tabla_semantica %}
             <section>
               <h2>Tabla semántica (lexemas y tipos)</h2>
