@@ -82,28 +82,57 @@
         </section>
       {% endif %}
 
-      {% if resultado.valido_sintactico %}
-        {% if resultado.errores_semanticos %}
-          <section>
-            <h2>Errores semánticos ({{ resultado.errores_semanticos|length }})</h2>
-            <div class="tabla-scroll">
-              <table>
-                <thead><tr><th>Código</th><th>Lexema</th><th>Línea:Col</th><th>Detalle</th></tr></thead>
-                <tbody>
-                  {% for esem in resultado.errores_semanticos %}
-                    <tr>
-                      <td><code>{{ esem.codigo }}</code></td>
-                      <td><code>{{ esem.lexema or '-' }}</code></td>
-                      <td>{{ esem.linea }}:{{ esem.columna }}</td>
-                      <td>{{ esem.mensaje }}</td>
-                    </tr>
-                  {% endfor %}
-                </tbody>
-              </table>
-            </div>
-          </section>
-        {% endif %}
+      <!-- 1. Tokens y lexemas agrupados -->
+      <section>
+        <h2>Tokens y lexemas agrupados</h2>
+        <p class="resumen">{{ resultado.grupos|length }} tipos de token distintos en {{ resultado.tokens|length }} lexemas.</p>
+        <div class="tabla-scroll">
+          <table>
+            <thead><tr><th>Token (agrupador)</th><th>Lexemas</th></tr></thead>
+            <tbody>
+              {% for token, lexemas in resultado.grupos %}
+                <tr>
+                  <td><code>{{ token }}</code></td>
+                  <td>{% for l in lexemas %}<span class="chip">{{ l }}</span>{% endfor %}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </section>
 
+      <!-- 2. Secuencia de lexemas reconocidos -->
+      <section>
+        <h2>Secuencia de lexemas reconocidos</h2>
+        <div class="tabla-scroll">
+          <table>
+            <thead><tr><th>N.º</th><th>Lexema</th><th>Token</th><th>Línea:Col</th></tr></thead>
+            <tbody>
+              {% for t in resultado.tokens %}
+                <tr>
+                  <td>{{ loop.index }}</td>
+                  <td class="lexema">{{ t.lexema }}</td>
+                  <td><code>{{ t.token }}</code></td>
+                  <td>{{ t.linea }}:{{ t.columna }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 3. Árbol sintáctico -->
+      <section>
+        <h2>Árbol sintáctico</h2>
+        {% if resultado.valido_sintactico and resultado.arbol_texto %}
+          <pre class="arbol-pre"><code>{{ resultado.arbol_texto }}</code></pre>
+        {% else %}
+          <p class="ayuda">No se generó el árbol sintáctico porque la entrada no cumple con la gramática.</p>
+        {% endif %}
+      </section>
+
+      <!-- 4. Objeto JSON (si pasó las 3 fases) O tabla de errores semánticos (si falló la semántica) -->
+      {% if resultado.compilacion_valida and resultado.json_texto %}
         {% if resultado.advertencias_semanticas %}
           <section>
             <h2>Advertencias semánticas ({{ resultado.advertencias_semanticas|length }})</h2>
@@ -124,11 +153,9 @@
             </div>
           </section>
         {% endif %}
-      {% endif %}
 
-      <section>
-        <h2>Objeto JSON generado</h2>
-        {% if resultado.compilacion_valida and resultado.json_texto %}
+        <section>
+          <h2>Objeto JSON generado</h2>
           <p class="ayuda" style="margin-bottom: .6rem;">
             Representación estructurada lista para ser consumida por sistemas externos (sin ejecución en servidor transaccional).
           </p>
@@ -137,56 +164,27 @@
             <input type="hidden" name="codigo_json" value="{{ texto }}">
             <button type="submit" class="secundario">Descargar regla_descuento.json</button>
           </form>
-        {% else %}
-          <p class="ayuda">No se generó el objeto JSON porque la regla presenta errores léxicos, sintácticos o semánticos.</p>
-        {% endif %}
-      </section>	
-
-      <section>
-        <h2>Árbol sintáctico</h2>
-        {% if resultado.valido_sintactico and resultado.arbol_texto %}
-          <pre style="background: var(--codigo-fondo); padding: .8rem; border-radius: 8px; overflow-x: auto; border: 1px solid var(--borde);"><code>{{ resultado.arbol_texto }}</code></pre>
-        {% else %}
-          <p class="ayuda">No se generó el árbol sintáctico porque la entrada no cumple con la gramática.</p>
-        {% endif %}
-      </section>
-
-      <section>
-        <h2>Tokens y lexemas agrupados</h2>
-        <p class="resumen">{{ resultado.grupos|length }} tipos de token distintos en {{ resultado.tokens|length }} lexemas.</p>
-        <div class="tabla-scroll">
-          <table>
-            <thead><tr><th>Token (agrupador)</th><th>Lexemas</th></tr></thead>
-            <tbody>
-              {% for token, lexemas in resultado.grupos %}
-                <tr>
-                  <td><code>{{ token }}</code></td>
-                  <td>{% for l in lexemas %}<span class="chip">{{ l }}</span>{% endfor %}</td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <section>
-        <h2>Secuencia de lexemas reconocidos</h2>
-        <div class="tabla-scroll">
-          <table>
-            <thead><tr><th>N.º</th><th>Lexema</th><th>Token</th><th>Línea:Col</th></tr></thead>
-            <tbody>
-              {% for t in resultado.tokens %}
-                <tr>
-                  <td>{{ loop.index }}</td>
-                  <td class="lexema">{{ t.lexema }}</td>
-                  <td><code>{{ t.token }}</code></td>
-                  <td>{{ t.linea }}:{{ t.columna }}</td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      </section>
+        </section>
+      {% elif resultado.valido_sintactico and resultado.errores_semanticos %}
+        <section>
+          <h2>Errores semánticos ({{ resultado.errores_semanticos|length }})</h2>
+          <div class="tabla-scroll">
+            <table>
+              <thead><tr><th>Código</th><th>Lexema</th><th>Línea:Col</th><th>Detalle</th></tr></thead>
+              <tbody>
+                {% for esem in resultado.errores_semanticos %}
+                  <tr>
+                    <td><code>{{ esem.codigo }}</code></td>
+                    <td><code>{{ esem.lexema or '-' }}</code></td>
+                    <td>{{ esem.linea }}:{{ esem.columna }}</td>
+                    <td>{{ esem.mensaje }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      {% endif %}
     {% endif %}
   </main>
 
