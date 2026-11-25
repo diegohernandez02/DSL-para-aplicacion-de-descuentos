@@ -1,4 +1,4 @@
-// Comportamiento de la interfaz (frontend). El análisis léxico ocurre en el servidor (Flask).
+/// Comportamiento de la interfaz (frontend). El análisis ocurre en el servidor (Flask).
 (function () {
   "use strict";
 
