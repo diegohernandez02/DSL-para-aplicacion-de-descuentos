@@ -117,6 +117,7 @@ def _construir_tabla_semantica(arbol: dict | None) -> list[dict]:
 def _analizar_entrada(texto: str) -> dict:
     lex = tokenizar(texto)
     valido_lexico = len(lex["errores"]) == 0
+    reglas_glc = metacompilador_sintactico.obtener_reglas_glc()
 
     if valido_lexico:
         sint = metacompilador_sintactico.analizar_tokens(lex["tokens"])
@@ -156,6 +157,7 @@ def _analizar_entrada(texto: str) -> dict:
         "errores": lex["errores"],
         "valido_lexico": valido_lexico,
         "grupos": agrupar(lex["tokens"]),
+        "reglas_glc": reglas_glc,
         "valido_sintactico": sint["valido"],
         "errores_sintacticos": sint["errores_sintacticos"],
         "arbol": sint["arbol"],
