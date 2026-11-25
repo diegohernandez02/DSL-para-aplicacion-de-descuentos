@@ -48,8 +48,70 @@ SINO SI COMPRA.total > 300 ENTONCES APLICAR DESCUENTO(10%)
 SINO APLICAR DESCUENTO(0%)
 """
 
+TIPOS_ATRIBUTO = {
+    ("CLIENTE", "nivel"): "cadena / categoría",
+    ("CLIENTE", "puntos"): "numérico",
+    ("CLIENTE", "compras"): "numérico",
+    ("CLIENTE", "antiguedad"): "numérico",
+    ("COMPRA", "total"): "numérico (moneda)",
+    ("COMPRA", "cantidad"): "numérico",
+    ("COMPRA", "categoria"): "cadena / categoría",
+}
+
 metacompilador_sintactico = MetacompiladorSintactico()
 analizador_semantico = AnalizadorSemantico()
+
+
+def _construir_tabla_semantica(arbol: dict | None) -> list[dict]:
+    """Extrae lexemas relevantes y su tipo de dato inferido desde el árbol sintáctico."""
+    if not arbol:
+        return []
+
+    simbolos: list[dict] = []
+    vistos: set[tuple[str, str]] = set()
+
+    def agregar(nombre: str, tipo: str) -> None:
+        clave = (nombre, tipo)
+        if nombre and clave not in vistos:
+            vistos.add(clave)
+            simbolos.append({"nombre": nombre, "tipo": tipo})
+
+    def recorrer(nodo: dict) -> None:
+        if not isinstance(nodo, dict):
+            return
+
+        if nodo.get("nodo") == "COMPARACION":
+            hijos = nodo.get("hijos", [])
+            if len(hijos) >= 3:
+                attr_hijos = hijos[0].get("hijos", [])
+                val_hijos = hijos[2].get("hijos", [])
+                if len(attr_hijos) >= 3:
+                    obj_lex = str(attr_hijos[0].get("lexema", ""))
+                    atr_lex = str(attr_hijos[2].get("lexema", ""))
+                    if obj_lex:
+                        agregar(obj_lex, "entidad")
+                    if obj_lex and atr_lex:
+                        full_attr = f"{obj_lex}.{atr_lex}"
+                        tipo_attr = TIPOS_ATRIBUTO.get((obj_lex, atr_lex), "atributo")
+                        agregar(full_attr, tipo_attr)
+                if val_hijos:
+                    val_nodo = val_hijos[0]
+                    v_lex = str(val_nodo.get("lexema", ""))
+                    v_tok = val_nodo.get("token", "")
+                    if v_tok == "T_NUM":
+                        agregar(v_lex, "número")
+                    elif v_tok == "T_PORCENTAJE":
+                        agregar(v_lex, "porcentaje")
+                    elif v_tok == "T_CADENA":
+                        agregar(v_lex, "cadena")
+                    elif v_tok == "T_ID":
+                        agregar(v_lex, "identificador / categoría")
+
+        for h in nodo.get("hijos", []):
+            recorrer(h)
+
+    recorrer(arbol)
+    return simbolos
 
 
 def _analizar_entrada(texto: str) -> dict:
@@ -68,12 +130,14 @@ def _analizar_entrada(texto: str) -> dict:
 
     if valido_lexico and sint["valido"]:
         sem = analizador_semantico.analizar_arbol(sint["arbol"])
+        tabla_semantica = _construir_tabla_semantica(sint["arbol"])
     else:
         sem = {
             "valido_semantico": False,
             "errores_semanticos": [],
             "advertencias_semanticas": [],
         }
+        tabla_semantica = []
 
     compilacion_valida = (
         valido_lexico
@@ -99,6 +163,7 @@ def _analizar_entrada(texto: str) -> dict:
         "valido_semantico": sem["valido_semantico"],
         "errores_semanticos": sem["errores_semanticos"],
         "advertencias_semanticas": sem["advertencias_semanticas"],
+        "tabla_semantica": tabla_semantica,
         "compilacion_valida": compilacion_valida,
         "json_objeto": salida_json["objeto"],
         "json_texto": salida_json["json_texto"],
