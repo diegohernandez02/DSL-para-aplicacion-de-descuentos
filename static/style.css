@@ -1,13 +1,13 @@
 :root {
   --fondo: #f5f7fa; --tarjeta: #ffffff; --texto: #1f2933; --suave: #52606d;
   --borde: #d9e0e7; --acento: #1d4e89; --acento-fondo: #e8f0fa; --error: #b42318;
-  --error-fondo: #fdecea; --codigo-fondo: #f0f3f7;
+  --error-fondo: #fdecea; --aviso: #9a5b00; --aviso-fondo: #fef3c7; --codigo-fondo: #f0f3f7;
 }
 @media (prefers-color-scheme: dark) {
   :root {
     --fondo: #12181f; --tarjeta: #1b232c; --texto: #e6ebf0; --suave: #9fb0bf;
     --borde: #2f3b47; --acento: #7db3f0; --acento-fondo: #1f3248; --error: #ff8a80;
-    --error-fondo: #3a1f1d; --codigo-fondo: #151c23;
+    --error-fondo: #3a1f1d; --aviso: #fbbf24; --aviso-fondo: #332914; --codigo-fondo: #151c23;
   }
 }
 * { box-sizing: border-box; }
@@ -34,6 +34,11 @@ button:hover { filter: brightness(1.1); }
 .ayuda { font-size: .85rem; color: var(--suave); margin: .4rem 0 0; }
 .error { background: var(--error-fondo); color: var(--error); border-radius: 8px;
          padding: .7rem .9rem; margin-bottom: 1rem; }
+.advertencia { background: var(--aviso-fondo); color: var(--aviso); border-radius: 8px;
+               padding: .7rem .9rem; margin-bottom: .75rem; }
+.arbol-pre { background: var(--codigo-fondo); padding: .8rem; border-radius: 8px;
+             overflow-x: auto; border: 1px solid var(--borde); margin: 0;
+             font: .9rem/1.45 ui-monospace, Consolas, monospace; }
 .tabla-scroll { overflow-x: auto; }
 table { border-collapse: collapse; width: 100%; font-size: .9rem; }
 th, td { text-align: left; padding: .45rem .7rem; border-bottom: 1px solid var(--borde); }
