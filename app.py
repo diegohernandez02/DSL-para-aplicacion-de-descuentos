@@ -54,9 +54,19 @@ analizador_semantico = AnalizadorSemantico()
 
 def _analizar_entrada(texto: str) -> dict:
     lex = tokenizar(texto)
-    sint = metacompilador_sintactico.analizar_tokens(lex["tokens"])
+    valido_lexico = len(lex["errores"]) == 0
 
-    if sint["valido"]:
+    if valido_lexico:
+        sint = metacompilador_sintactico.analizar_tokens(lex["tokens"])
+    else:
+        sint = {
+            "valido": False,
+            "errores_sintacticos": [],
+            "arbol": None,
+            "arbol_texto": "",
+        }
+
+    if valido_lexico and sint["valido"]:
         sem = analizador_semantico.analizar_arbol(sint["arbol"])
     else:
         sem = {
@@ -66,7 +76,7 @@ def _analizar_entrada(texto: str) -> dict:
         }
 
     compilacion_valida = (
-        len(lex["errores"]) == 0
+        valido_lexico
         and sint["valido"]
         and sem["valido_semantico"]
     )
@@ -80,6 +90,7 @@ def _analizar_entrada(texto: str) -> dict:
     return {
         "tokens": lex["tokens"],
         "errores": lex["errores"],
+        "valido_lexico": valido_lexico,
         "grupos": agrupar(lex["tokens"]),
         "valido_sintactico": sint["valido"],
         "errores_sintacticos": sint["errores_sintacticos"],
