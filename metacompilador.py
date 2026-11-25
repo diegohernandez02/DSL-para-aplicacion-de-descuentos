@@ -514,7 +514,7 @@ if __name__ == "__main__":
         (
             "SI CLIENTE.nivel = VIP ENTONCES APLICAR DESCUENTO(15%) "
             "SINO SI COMPRA.total > 300 ENTONCES APLICAR DESCUENTO(10%) "
-            "SINO APLICAR DESCUENTO(0%)"
+            "SINO APLICAR DESCUENTO(20%)"
         ),
         "SI NO (CLIENTE.categoria == \"NUEVO\" O COMPRA.items >= 3) ENTONCES APLICAR DESCUENTO(12.5%)",
         "SI CLIENTE.nivel = @VIP ENTONCES APLICAR DESCUENTO(10%)",
