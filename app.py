@@ -11,6 +11,7 @@ from generador_json import GeneradorJSONReglas
 from lexer import agrupar, tokenizar
 from parser_meta import MetacompiladorSintactico
 from semantico import AnalizadorSemantico
+from automatas_lexicos import obtener_automatas_tokens
 
 app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = 200 * 1024
@@ -157,6 +158,7 @@ def _analizar_entrada(texto: str) -> dict:
         "errores": lex["errores"],
         "valido_lexico": valido_lexico,
         "grupos": agrupar(lex["tokens"]),
+        "automatas_tokens": obtener_automatas_tokens(lex["tokens"]),
         "reglas_glc": reglas_glc,
         "valido_sintactico": sint["valido"],
         "errores_sintacticos": sint["errores_sintacticos"],
