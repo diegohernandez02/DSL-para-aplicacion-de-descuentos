@@ -108,6 +108,31 @@
           </section>
 
           <!-- Fase 3: Semántica / Objeto JSON -->
+          <!-- Tabla de símbolos / tipos del análisis semántico -->
+          {% if resultado.tabla_semantica %}
+            <section>
+              <h2>Tabla semántica (lexemas y tipos)</h2>
+              <div class="tabla-scroll">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Nombre del lexema</th>
+                      <th>Tipo de dato</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for item in resultado.tabla_semantica %}
+                      <tr>
+                        <td><code>{{ item.nombre }}</code></td>
+                        <td>{{ item.tipo }}</td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          {% endif %}
+
           {% if resultado.compilacion_valida and resultado.json_texto %}
             {% if resultado.advertencias_semanticas %}
               <section>
