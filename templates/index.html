@@ -100,6 +100,65 @@
           </div>
         </section>
 
+        <!-- 3. Autómatas AFND / AFD y tablas de transiciones (T_ID, T_NUM, T_PORCENTAJE, T_RELOP) -->
+        {% if resultado.automatas_tokens %}
+          <section>
+            <h2>Autómatas (AFND / AFD) y tablas de transiciones</h2>
+            <p class="ayuda" style="margin-bottom: .75rem;">
+              Modelos formales para <code>T_ID</code>, <code>T_NUM</code>, <code>T_PORCENTAJE</code> y <code>T_RELOP</code> con los lexemas reconocidos en la entrada actual (<code>→</code> estado inicial, <code>*</code> estado de aceptación, <code>—</code> transición inválida).
+            </p>
+
+            {% for aut in resultado.automatas_tokens %}
+              {% set lex_texto = aut.lexemas_reconocidos | join(', ') if aut.lexemas_reconocidos else 'ninguno en la entrada' %}
+              <div style="margin-top: 1rem; padding-top: .75rem; border-top: 1px solid var(--borde);">
+                <h3 style="margin: 0 0 .35rem; font-size: .98rem;">
+                  <code>{{ aut.token }}</code> — Lexemas reconocidos: <code>{{ lex_texto }}</code> · <code>{{ aut.expresion_regular }}</code>
+                </h3>
+                <p class="ayuda" style="margin-bottom: .5rem;">{{ aut.descripcion }}</p>
+
+                <p class="resumen" style="margin-bottom: .35rem;"><strong>AFND (lexemas: <code>{{ lex_texto }}</code>):</strong></p>
+                <pre class="arbol-pre" style="margin-bottom: .65rem;"><code>Lexemas reconocidos: {{ lex_texto }}
+Estados: {{ aut.afnd.estados | join(', ') }}
+Estado inicial: {{ aut.afnd.inicial }}
+Estados de aceptación: {{ aut.afnd.aceptacion | join(', ') }}
+Alfabeto: {{ aut.afnd.alfabeto | join(', ') }}
+Transiciones:
+{% for tr in aut.afnd.transiciones %}  δ({{ tr.origen }}, {{ tr.simbolo }}) → { {{ tr.destinos | join(', ') }} }
+{% endfor %}</code></pre>
+
+                <p class="resumen" style="margin-bottom: .35rem;"><strong>AFD (lexemas: <code>{{ lex_texto }}</code>):</strong></p>
+                <pre class="arbol-pre" style="margin-bottom: .65rem;"><code>Lexemas reconocidos: {{ lex_texto }}
+Estados: {{ aut.afd.estados | join(', ') }}
+Estado inicial: {{ aut.afd.inicial }}
+Estados de aceptación: {{ aut.afd.aceptacion | join(', ') }}
+Alfabeto: {{ aut.afd.alfabeto | join(', ') }}</code></pre>
+
+                <p class="resumen" style="margin-bottom: .35rem;"><strong>Tabla de transiciones (AFD · lexemas: <code>{{ lex_texto }}</code>):</strong></p>
+                <div class="tabla-scroll">
+                  <table>
+                    <thead>
+                      <tr>
+                        {% for col in aut.afd.columnas %}
+                          <th>{{ "Estado" if col == "estado" else col }}</th>
+                        {% endfor %}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for fila in aut.afd.tabla %}
+                        <tr>
+                          {% for col in aut.afd.columnas %}
+                            <td><code>{{ fila[col] }}</code></td>
+                          {% endfor %}
+                        </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            {% endfor %}
+          </section>
+        {% endif %}
+
         <!-- Fase 2: Sintáctica -->
         <section>
           <h2>Reglas de la GLC</h2>
