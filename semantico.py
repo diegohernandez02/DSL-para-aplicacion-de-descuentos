@@ -158,11 +158,11 @@ class AnalizadorSemantico:
                 linea = int(h.get("linea", 1))
                 col = int(h.get("columna", 1))
                 valor = self._parsear_numero(lexema)
-                if valor is None or valor < 0 or valor > 100:
+                if valor is None or valor < 1 or valor > 100:
                     errores.append(
                         ErrorSemantico(
                             codigo="SEM_DESCUENTO_FUERA_RANGO",
-                            mensaje=f"El descuento '{lexema}' debe estar entre 0% y 100%.",
+                            mensaje=f"El descuento '{lexema}' debe estar entre 1% y 100%.",
                             linea=linea,
                             columna=col,
                             lexema=lexema,
