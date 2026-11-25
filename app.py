@@ -1,25 +1,26 @@
 """
-Etapa 1 - Aplicación web (Flask) del proyecto:
+Aplicación web (Flask) del proyecto:
 DSL para reglas de descuento dinámico en e-commerce/retail.
 
-Contiene el enunciado del proyecto, un bloque para escribir o subir el lenguaje
-(con un ejemplo digitado) y, a partir de esa entrada, genera los TOKENS y LEXEMAS.
+Integra análisis léxico, sintáctico, semántico y generación de objeto JSON
+estructurado (sin conexión a servidor transaccional externo).
 """
-from flask import Flask, render_template, request
+from flask import Flask, Response, render_template, request
 
+from generador_json import GeneradorJSONReglas
 from lexer import agrupar, tokenizar
+from parser_meta import MetacompiladorSintactico
+from semantico import AnalizadorSemantico
 
 app = Flask(__name__)
-app.config["MAX_CONTENT_LENGTH"] = 200 * 1024  # rechaza cargas de más de 200 KB
+app.config["MAX_CONTENT_LENGTH"] = 200 * 1024
 
-LIMITE_ARCHIVO = 100 * 1024  # 100 KB de código DSL es más que suficiente
+LIMITE_ARCHIVO = 100 * 1024
 
-# Ajusta estos textos al título y planteamiento finales de tu informe.
 ENUNCIADO = {
     "titulo": (
-        "Implementación de un lenguaje de dominio específico para reglas de descuento "
-        "en la validación automática de promociones en una empresa de comercio "
-        "electrónico de Lima, 2026"
+        "Implementación de un compilador DSL de reglas de descuento para automatizar "
+        "la validación de promociones en una empresa de comercio electrónico en Lima"
     ),
     "problema": (
         "En las plataformas de comercio electrónico, las reglas de descuento suelen "
@@ -28,17 +29,17 @@ ENUNCIADO = {
         "reglas ambiguas o que se solapan sobre una misma compra."
     ),
     "vacio": (
-        "Falta un lenguaje de dominio específico formalizado con el que las áreas "
-        "comerciales definan reglas de descuento complejas sin redesplegar código ni "
-        "depender de TI, evitando colisiones y ambigüedades."
+        "Falta de mecanismos formales y automatizados para definir y validar reglas "
+        "de descuento y promociones en el rubro del comercio electrónico, generando "
+        "baja autonomía comercial y riesgo de ambigüedades o colisiones."
     ),
     "objetivo": (
-        "Determinar el efecto de un DSL para reglas de descuento sobre la validación "
-        "automática y la consistencia de las promociones aplicadas."
+        "Determinar el efecto de un compilador DSL web de reglas de descuento en la "
+        "validación de promociones de una empresa de comercio electrónico en Lima."
     ),
     "proceso": (
-        "Evaluación y aplicación automática de promociones empresariales: el área "
-        "comercial escribe la regla, el analizador la valida y el sistema la aplica."
+        "Definición declarativa de la regla promocional, validación léxica, sintáctica "
+        "y semántica, y generación de un objeto JSON estructurado listo para consumo externo."
     ),
 }
 
@@ -46,6 +47,51 @@ EJEMPLO = """SI CLIENTE.nivel = VIP Y COMPRA.total > 500 Y TIEMPO(enrango) ENTON
 SINO SI COMPRA.total > 300 ENTONCES APLICAR DESCUENTO(10%)
 SINO APLICAR DESCUENTO(0%)
 """
+
+metacompilador_sintactico = MetacompiladorSintactico()
+analizador_semantico = AnalizadorSemantico()
+
+
+def _analizar_entrada(texto: str) -> dict:
+    lex = tokenizar(texto)
+    sint = metacompilador_sintactico.analizar_tokens(lex["tokens"])
+
+    if sint["valido"]:
+        sem = analizador_semantico.analizar_arbol(sint["arbol"])
+    else:
+        sem = {
+            "valido_semantico": False,
+            "errores_semanticos": [],
+            "advertencias_semanticas": [],
+        }
+
+    compilacion_valida = (
+        len(lex["errores"]) == 0
+        and sint["valido"]
+        and sem["valido_semantico"]
+    )
+
+    salida_json = (
+        GeneradorJSONReglas.generar(sint["arbol"], texto)
+        if compilacion_valida
+        else {"objeto": None, "json_texto": ""}
+    )
+
+    return {
+        "tokens": lex["tokens"],
+        "errores": lex["errores"],
+        "grupos": agrupar(lex["tokens"]),
+        "valido_sintactico": sint["valido"],
+        "errores_sintacticos": sint["errores_sintacticos"],
+        "arbol": sint["arbol"],
+        "arbol_texto": sint["arbol_texto"],
+        "valido_semantico": sem["valido_semantico"],
+        "errores_semanticos": sem["errores_semanticos"],
+        "advertencias_semanticas": sem["advertencias_semanticas"],
+        "compilacion_valida": compilacion_valida,
+        "json_objeto": salida_json["objeto"],
+        "json_texto": salida_json["json_texto"],
+    }
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -70,12 +116,7 @@ def index():
 
         if error is None:
             if texto.strip():
-                analisis = tokenizar(texto)
-                resultado = {
-                    "tokens": analisis["tokens"],
-                    "errores": analisis["errores"],
-                    "grupos": agrupar(analisis["tokens"]),
-                }
+                resultado = _analizar_entrada(texto)
             else:
                 error = "Escribe una regla o sube un archivo para analizar."
 
@@ -86,6 +127,19 @@ def index():
         ejemplo=EJEMPLO,
         resultado=resultado,
         error=error,
+    )
+
+
+@app.route("/descargar-json", methods=["POST"])
+def descargar_json():
+    texto = request.form.get("codigo_json", "")
+    analisis = _analizar_entrada(texto)
+    if not analisis["compilacion_valida"]:
+        return Response("La regla contiene errores y no puede exportarse a JSON.", status=400)
+    return Response(
+        analisis["json_texto"],
+        mimetype="application/json; charset=utf-8",
+        headers={"Content-Disposition": "attachment; filename=regla_descuento.json"},
     )
 
 
